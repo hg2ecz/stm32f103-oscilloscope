@@ -9,8 +9,10 @@ import argparse
 import numpy
 
 class Spectrum(tkinter.Tk):
-    def __init__(self, device, amplification):
-        self.amplification = float(amplification)
+    def __init__(self, device, args):
+        self.amplification = float(args.amplification)
+        self.bwspan = int(args.bwspan)
+        self.startfreq = int(args.startfreq)
         tkinter.Tk.__init__(self)
         signal.signal(signal.SIGINT, self.sigint_handler)
         self.winfo_toplevel().title("Spectrumanalyzer - v0.10")
@@ -30,17 +32,17 @@ class Spectrum(tkinter.Tk):
         self.update()
 
     def run(self):
-        blen = self.width*2
+        blen = self.width*2*self.bwspan
         fftwindow = numpy.blackman(blen)
-        for i in range(30):             # legalább 20 blokkot beolvasunk és eldobunk, mert az X nem bírja megjeleníteni
-            s = self.ser.read(2*4096)
+        for i in range(100//self.bwspan+1):             # legalább 20 blokkot beolvasunk és eldobunk, mert az X nem bírja megjeleníteni
+            s = self.ser.read(2*blen)
         sample = []
         for x in range(blen):
             sample.append(1.9*(s[2*x]-85))
         xy_fft = numpy.fft.fft(sample * fftwindow)
         xy_amp = []
-        for x in range(blen//2):
-            amp = abs(xy_fft[x]*5./blen)
+        for x in range(self.width):
+            amp = abs(xy_fft[int(self.startfreq*5.8)+x]*5./blen)
             xy_amp.append(x)
             xy_amp.append(self.center-amp*self.amplification)
 
@@ -57,7 +59,7 @@ class Spectrum(tkinter.Tk):
                 fcolor='lightgreen'
             self.c.create_line(0, y, self.width, y, fill=fcolor)
             if fcolor == 'orange':
-                self.c.create_text(5, y, anchor=tkinter.SW, text="%.1f V"%((self.center-y)/50/self.amplification))
+                self.c.create_text(5, y, anchor=tkinter.SW, text="%.2f V"%((self.center-y)/50/self.amplification))
             ct+=1
 
         ct=0
@@ -69,7 +71,7 @@ class Spectrum(tkinter.Tk):
             self.c.create_line(x, self.center-350, x, self.center+5, fill=fcolor)
             self.c.create_line(x, self.phasecenter-90, x, self.phasecenter+90, fill=fcolor) # phase vertical scale
             if ct and fcolor == 'orange':
-                self.c.create_text(x-20, self.center+20, anchor=tkinter.SW, text="%.1f kHz"%(5*ct))
+                self.c.create_text(x-20, self.center+20, anchor=tkinter.SW, text="%.1f kHz"%((5*ct/self.bwspan)+self.startfreq/self.bwspan))
             ct+=1
         self.c.create_line(xy_amp, fill='blue')
 
@@ -79,7 +81,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('-d', '--device', help='device, e.g. -d /dev/ttyACM0', default='/dev/ttyACM0')
     parser.add_argument('-a', '--amplification', help='device, e.g. -a 10', default='1')
+    parser.add_argument('-b', '--bwspan', help='bw span, e.g. -b 10', default='1')
+    parser.add_argument('-f', '--startfreq', help='start freq, e.g. -f 0', default='0')
 
     args = parser.parse_args()
-    root = Spectrum(args.device, args.amplification)
+    root = Spectrum(args.device, args)
     root.mainloop()
