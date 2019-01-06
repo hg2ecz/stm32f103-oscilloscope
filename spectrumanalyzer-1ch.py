@@ -78,7 +78,7 @@ class Spectrum(tkinter.Tk):
         self.after(1, self.run)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(description='Spectrumanalyzer')
     parser.add_argument('-d', '--device', help='device, e.g. -d /dev/ttyACM0', default='/dev/ttyACM0')
     parser.add_argument('-a', '--amplification', help='device, e.g. -a 10', default='1')
     parser.add_argument('-b', '--bwspan', help='bw span, e.g. -b 10', default='1')

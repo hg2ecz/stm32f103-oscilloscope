@@ -8,7 +8,8 @@ import tkinter
 import argparse
 
 class Oscilloscope(tkinter.Tk):
-    def __init__(self, device):
+    def __init__(self, device, args):
+        self.amplification = float(args.amplification)
         tkinter.Tk.__init__(self)
         signal.signal(signal.SIGINT, self.sigint_handler)
         self.winfo_toplevel().title("Oszcilloszkóp - v0.13")
@@ -33,7 +34,7 @@ class Oscilloscope(tkinter.Tk):
             s = self.ser.read(2*4096)
         for x in range(blen):
             xy1.append(x)
-            xy1.append(self.center-1.9*(s[2*x]-85))
+            xy1.append(self.center-1.9*(s[2*x]-85)*self.amplification)
         self.c.delete('all')
 
         ct = -1
@@ -46,7 +47,7 @@ class Oscilloscope(tkinter.Tk):
                 fcolor='lightgreen'
             self.c.create_line(0, y, self.width, y, fill=fcolor)
             if fcolor != 'lightgreen':
-                self.c.create_text(5, y, anchor=tkinter.SW, text="%.1f V"%((self.center-y)/50))
+                self.c.create_text(5, y, anchor=tkinter.SW, text="%.2f V"%((self.center-y)/50/self.amplification))
             ct+=1
 
         ct=0
@@ -66,11 +67,12 @@ class Oscilloscope(tkinter.Tk):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(description='Oscilloscope')
     parser.add_argument('-d', '--device', help='device, e.g. -d /dev/ttyACM0', default='/dev/ttyACM0')
+    parser.add_argument('-a', '--amplification', help='device, e.g. -a 10', default='1')
 
     args = parser.parse_args()
-    root = Oscilloscope(args.device)
+    root = Oscilloscope(args.device, args)
     root.mainloop()
 
 
