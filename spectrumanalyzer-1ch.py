@@ -36,7 +36,7 @@ class Spectrum(tkinter.Tk):
             s = self.ser.read(2*4096)
         sample = []
         for x in range(blen):
-            sample.append(s[2*x])
+            sample.append(1.9*(s[2*x]-85))
         xy_fft = numpy.fft.fft(sample * fftwindow)
         xy_amp = []
         for x in range(blen//2):
