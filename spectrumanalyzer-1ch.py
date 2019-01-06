@@ -9,7 +9,8 @@ import argparse
 import numpy
 
 class Spectrum(tkinter.Tk):
-    def __init__(self, device):
+    def __init__(self, device, amplification):
+        self.amplification = float(amplification)
         tkinter.Tk.__init__(self)
         signal.signal(signal.SIGINT, self.sigint_handler)
         self.winfo_toplevel().title("Spectrumanalyzer - v0.10")
@@ -41,7 +42,7 @@ class Spectrum(tkinter.Tk):
         for x in range(blen//2):
             amp = abs(xy_fft[x]*5./blen)
             xy_amp.append(x)
-            xy_amp.append(self.center-amp)
+            xy_amp.append(self.center-amp*self.amplification)
 
         self.c.delete('all')
 
@@ -56,7 +57,7 @@ class Spectrum(tkinter.Tk):
                 fcolor='lightgreen'
             self.c.create_line(0, y, self.width, y, fill=fcolor)
             if fcolor == 'orange':
-                self.c.create_text(5, y, anchor=tkinter.SW, text="%.1f V"%((self.center-y)/50))
+                self.c.create_text(5, y, anchor=tkinter.SW, text="%.1f V"%((self.center-y)/50/self.amplification))
             ct+=1
 
         ct=0
@@ -77,7 +78,8 @@ class Spectrum(tkinter.Tk):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('-d', '--device', help='device, e.g. -d /dev/ttyACM0', default='/dev/ttyACM0')
+    parser.add_argument('-a', '--amplification', help='device, e.g. -a 10', default='1')
 
     args = parser.parse_args()
-    root = Spectrum(args.device)
+    root = Spectrum(args.device, args.amplification)
     root.mainloop()
