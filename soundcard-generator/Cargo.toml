@@ -1,0 +1,10 @@
+[package]
+name = "hangkartya-generator"
+version = "0.1.0"
+authors = ["Zsolt Krüpl <hg2ecz@ham.hu>"]
+edition = "2018"
+
+[dependencies]
+argparse = "0.2"
+num-complex = "0.2"
+alsa = "0.2"
